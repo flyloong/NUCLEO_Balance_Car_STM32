@@ -93,6 +93,9 @@ uint32_t  Inf_Distance_Last=0;
 int Inf_Value_L[31];
 int Inf_Value_R[31];
 int Left_Right[2]={0,0};
+uint8_t Falled_Flag=0;
+
+  int temp11,temp21;
 static char Steer_Cmd_Array[6][30]={{79,80,81,82,83,84,85,84,83,82,81,80,79,78,77,76,75,74,73,74,75,76,77,78,79,0},//大数字向下，控制垂直方向，“是”的舵机控制码
                                       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},//
                                       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -100,7 +103,7 @@ static char Steer_Cmd_Array[6][30]={{79,80,81,82,83,84,85,84,83,82,81,80,79,78,7
                                       {79,77,75,73,71,69,67,69,71,73,75,73,71,69,67,65,67,69,71,73,71,69,67,65,63,0},
                                       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 };
-uint8_t IIC_Mutex=0;
+volatile uint8_t IIC_Mutex=0;
 char name[20] = "Balance-Car";
 UART_HandleTypeDef UartHandle6;
 UART_HandleTypeDef UartHandle2;
@@ -162,6 +165,7 @@ void Steer_Output(void);
  void SpeechT(unsigned char *buf1,unsigned char *buf2,unsigned char *buf3);
  void  Block_Detct(void);
  void  Dange_Detct(void);
+ uint8_t Fall_Detect(float Angle,float Target);
  void Float2Char(float Value,char *array);
  void Shake_Heak(int *Shake_Heak_F);
  void Steer_Cmd_XY(int *Steer_Cmd);
@@ -652,8 +656,8 @@ float ax_pre=0;
 void AHRS_Update(void){
   float ax,ay,az,gx,gy,gz,mx,my,mz;
   
-  while(IIC_Mutex);
-  IIC_Mutex=1;
+ // while(IIC_Mutex);
+ // IIC_Mutex=1;
     BSP_IMU_6AXES_X_GetAxesRaw((AxesRaw_TypeDef *)&ACC_Value_Raw);
     BSP_IMU_6AXES_G_GetAxesRaw((AxesRaw_TypeDef *)&GYR_Value_Raw);
     //BSP_MAGNETO_M_GetAxesRaw((AxesRaw_TypeDef *)&MAG_Value_Raw);
@@ -715,14 +719,45 @@ MahonyAHRSupdateIMU( gx,  gy,  gz,ax,  ay,  az);
    */
   
 }
+extern float g_fSpeedControlIntegral;
+uint8_t Fall_Detect(float Angle,float Target){
+	//static uint8_t Falled_Flag=0;
+	float E_Angle;
+	E_Angle=Angle-Target;
+	if(Falled_Flag==0){
+		if(E_Angle>50||E_Angle<-50){
+		Falled_Flag=1;
+		}
+	}
+	else{
+		if(E_Angle>-5&&E_Angle<5){
+		Falled_Flag=0;
+		g_fSpeedControlIntegral=0;
+			
+		}
+	}
+		return Falled_Flag;
+}
 void Motor_Output(void){
-  int temp1,temp2;
-  temp1=(int)(g_fAngleControlOut+Turn_Need)*1.035;
-  if(temp1>1000)temp1=1000;
-  if(temp1<-1000)temp1=-1000;
-    temp2=(int)(g_fAngleControlOut-Turn_Need);
-  if(temp2>1000)temp2=1000;
-  if(temp2<-1000)temp2=-1000;
+ // int temp1,temp2;
+  temp11=(int)(g_fAngleControlOut+Turn_Need)*1.035;
+  if(temp11>1000)temp11=1000;
+  if(temp11<-1000)temp11=-1000;
+    temp21=(int)(g_fAngleControlOut-Turn_Need);
+  if(temp21>1000)temp21=1000;
+  if(temp21<-1000)temp21=-1000;
+  
+  if(Fall_Detect(g_fCarAngle,0)){
+        Motor_Control_1(0);
+     Motor_Control_2(0);   
+ //   temp2=1;
+  }else{
+      Motor_Control_1(temp11 );
+     Motor_Control_2(temp21);
+ //    temp2=2;
+  }
+  
+  /*
    if(g_fCarAngle>-50&&g_fCarAngle<50){  
     Motor_Control_1(temp1 );
      Motor_Control_2(temp2);
@@ -731,6 +766,7 @@ void Motor_Output(void){
         Motor_Control_1(0);
      Motor_Control_2(0);    
         }
+  */
 }
   void AHRS_Init(void){
     s_xDataStruct.xSensorData.m_fAccRef[0]=0;

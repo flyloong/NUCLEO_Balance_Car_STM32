@@ -326,31 +326,37 @@ Speech("[m55]关闭预警");
             case 'i':         //自我介绍
         Speech("[m55]大家好，我叫七零儿[=er5]");
         yaw_Temp=yaw;
+          temp=3;
         break;  
     case 'c':
          Speech("sound402");
+         
          break;
     case 'P':
-      while(IIC_Mutex);
       IIC_Mutex=1;
+      while(IIC_Mutex);
+      
         BSP_PRESSURE_GetPressure((float *)&PRESSURE_Value);
-        IIC_Mutex=0;
+       // IIC_Mutex=0;
           Float2Char(PRESSURE_Value,Speek_F) ;
           SpeechT("[m55]现在的压强是",Speek_F,"帕斯卡");
        break;
     case 'H':
-      while(IIC_Mutex);
       IIC_Mutex=1;
+      while(IIC_Mutex);
+      temp=1;
          BSP_HUM_TEMP_GetHumidity((float *)&HUMIDITY_Value);
-         IIC_Mutex=0;
+      //   IIC_Mutex=0;
           Float2Char(HUMIDITY_Value,Speek_F) ;
           SpeechT("[m55]现在的相对湿度是百分之",Speek_F," ");
        break;
     case 'T':
-      while(IIC_Mutex);
       IIC_Mutex=1;
+      while(IIC_Mutex);
+      temp=2;
+     // IIC_Mutex=1;
          BSP_HUM_TEMP_GetTemperature((float *)&TEMPERATURE_Value);
-         IIC_Mutex=0;
+     //    
       Float2Char(TEMPERATURE_Value,Speek_F) ;
         SpeechT("[m55]现在的温度是",Speek_F,"度");
         break;

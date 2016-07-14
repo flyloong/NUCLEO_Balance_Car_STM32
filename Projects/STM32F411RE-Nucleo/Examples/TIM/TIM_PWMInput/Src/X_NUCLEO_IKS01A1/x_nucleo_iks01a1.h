@@ -104,7 +104,7 @@ typedef struct
 
 /* I2C clock speed configuration (in Hz) */
 #if (defined (USE_STM32F4XX_NUCLEO))
-#define NUCLEO_I2C_EXPBD_SPEED                         400000
+#define NUCLEO_I2C_EXPBD_SPEED                         1000000
 #endif /* USE_STM32F4XX_NUCLEO */
 
 /* Timing samples for L0 with SYSCLK 32MHz set in SystemClock_Config() */
