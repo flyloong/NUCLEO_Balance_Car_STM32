@@ -101,6 +101,8 @@ void ble_device_on_message(uint8_t type, uint16_t length, uint8_t* value)
 //  if(type!=1)return;
 //  if(*value!='s'||*(value+1)!='t')return;
       MY_counter++;
+     temp=type;
+      temp2=length;
       MY_Msg_Data[0]=*(value);
          MY_Msg_Data[1]= *(value+1);
        MY_Msg_Data[2]=*(value+2);
